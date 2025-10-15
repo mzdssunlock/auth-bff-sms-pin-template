@@ -1,0 +1,20 @@
+services:
+  surrealdb:
+    image: surrealdb/surrealdb:latest
+    container_name: surrealdb-auth
+    ports:
+      - "8000:8000"
+    environment:
+      - SURREAL_USER=${DB_USER}
+      - SURREAL_PASS=${DB_PASSWORD}
+    command: start --log trace --user ${DB_USER} --pass ${DB_PASSWORD} memory
+    # Для production используй: start --log info --user ${DB_USER} --pass ${DB_PASSWORD} file://data/database.db
+    # И добавь volumes:
+    #   - ./data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
