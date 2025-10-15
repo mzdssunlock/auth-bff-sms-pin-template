@@ -2,6 +2,28 @@
   "name": "auth-bff-sms-pin-template",
   "version": "1.0.0",
   "description": "Production-ready SvelteKit authentication template with SMS + PIN using BFF pattern, SurrealDB, and enterprise-grade security",
+  "keywords": [
+    "sveltekit"
+    "svelte5",
+    "typescript",
+    "authentication",
+    "sms-authentication",
+    "pin-authentication",
+    "surrealdb",
+    "argon2",
+    "security",
+    "bff",
+    "clean-architecture",
+    "session-management",
+    "otp",
+    "redis",
+    "production-ready",
+    "template",
+    "rate-limiting",
+    "honojs",
+    "fullstack",
+    "enterprise"
+  ],
   "author": {
     "name": "FrankFMY",
     "email": "Pryanishnikovartem@gmail.com",
