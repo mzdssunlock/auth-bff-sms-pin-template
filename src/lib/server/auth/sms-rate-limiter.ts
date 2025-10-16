@@ -5,13 +5,18 @@ export interface RateLimiter {
 
 export class SimpleRateLimiter implements RateLimiter {
   private attempts = new Map<string, { count: number; resetTime: number }>();
+  private cleanupInterval?: ReturnType<typeof setInterval>;
 
   constructor(
     private maxAttempts: number,
     private windowMs: number,
   ) {
     // Очистка каждую минуту
-    setInterval(() => this.cleanup(), 60000);
+    this.cleanupInterval = setInterval(() => this.cleanup(), 60000);
+    // Не блокируем выход из процесса
+    if (this.cleanupInterval.unref) {
+      this.cleanupInterval.unref();
+    }
   }
 
   check(key: string): boolean {
@@ -38,5 +43,13 @@ export class SimpleRateLimiter implements RateLimiter {
         this.attempts.delete(key);
       }
     }
+  }
+
+  shutdown(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+    this.attempts.clear();
   }
 }

@@ -32,8 +32,11 @@
     // Убираем все нецифровые символы
     const digits = value.replace(/\D/g, "");
 
-    // Автоматически добавляем +7
+    // Проверяем минимальную длину
     if (digits.length === 0) return "";
+    if (digits.length < 10) return ""; // Минимум 10 цифр для валидного номера
+
+    // Автоматически добавляем +7
     if (digits.startsWith("8")) return "+7" + digits.slice(1);
     if (digits.startsWith("7")) return "+" + digits;
     return "+7" + digits;

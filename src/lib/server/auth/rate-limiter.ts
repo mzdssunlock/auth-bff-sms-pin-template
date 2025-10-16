@@ -106,6 +106,13 @@ class RateLimiter {
   }
 
   /**
+   * Получить запись для IP (для отката счётчика при успешных запросах)
+   */
+  getRecord(ip: string): RateLimitRecord | undefined {
+    return this.records.get(ip);
+  }
+
+  /**
    * Очистка истекших записей
    */
   private cleanup(): void {
@@ -205,7 +212,7 @@ export function createRateLimiter(options: RateLimitOptions = {}) {
 
       // Если нужно пропускать успешные запросы - откатываем счётчик
       if (config.skipSuccessfulRequests && response.status < 400) {
-        const record = limiter["records"].get(ip);
+        const record = limiter.getRecord(ip);
         if (record && record.count > 0) {
           record.count--;
         }

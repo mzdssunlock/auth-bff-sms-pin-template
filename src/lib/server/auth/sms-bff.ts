@@ -100,7 +100,7 @@ export class SMSBFFService {
         const sessionId = randomUUID();
         const sessionData: SMSSessionData = {
           sessionId,
-          userId: result.userId!,
+          userId: String(result.userId!),
           phone,
           expiresAt:
             Date.now() +
@@ -150,17 +150,14 @@ export class SMSBFFService {
 
         const { pin } = await c.req.json();
 
-        const result = await this.smsAuth.setupPIN(session.userId, pin);
+        const result = await this.smsAuth.setupPIN(Number(session.userId), pin);
 
         if (!result.success) {
           return c.json({ error: result.error }, 400);
         }
 
-        // Обновляем сессию
-        await this.sessionStore.updateSession(sessionId, {
-          ...session,
-          requiresPinSetup: false,
-        } as SMSSessionData);
+        // PIN успешно сохранён в БД
+        // Сессию обновлять не требуется - requiresPinSetup будет актуальным при следующем login
 
         return c.json({
           success: true,
@@ -189,7 +186,7 @@ export class SMSBFFService {
         const sessionId = randomUUID();
         const sessionData: SMSSessionData = {
           sessionId,
-          userId: result.userId!,
+          userId: String(result.userId!),
           phone,
           expiresAt:
             Date.now() +

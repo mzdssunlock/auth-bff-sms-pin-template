@@ -2,7 +2,7 @@
 import crypto from "crypto";
 import * as argon2 from "argon2";
 import { smsProvider } from "$lib/server/sms";
-import { db } from "$lib/server/db/surreal";
+import { db } from "$lib/server/db";
 import { MemoryOTPStore, type OTPStore } from "./otp-store";
 import type { RateLimiter } from "./sms-rate-limiter";
 
@@ -166,7 +166,7 @@ export class SMSAuthService {
     ipAddress: string,
   ): Promise<{
     success: boolean;
-    userId?: string;
+    userId?: number;
     requiresPinSetup?: boolean;
     error?: string;
     attemptsLeft?: number;
@@ -188,13 +188,13 @@ export class SMSAuthService {
     }
 
     if (otpRecord.attempts >= this.config.maxOTPAttempts) {
-      await db.deleteOTPCode(otpRecord.id.toString());
+      await db.deleteOTPCode(otpRecord.id);
       return { success: false, error: "Превышено количество попыток" };
     }
 
     // Проверяем код
     if (otpRecord.code !== code) {
-      await db.incrementOTPAttempts(otpRecord.id.toString());
+      await db.incrementOTPAttempts(otpRecord.id);
       return {
         success: false,
         error: "Неверный код",
@@ -210,11 +210,9 @@ export class SMSAuthService {
       user = await db.createUser({
         phone,
         pin_hash: null,
-        created_at: new Date(),
-        last_login_at: new Date(),
       });
     } else {
-      await db.updateLastLogin(user.id.toString());
+      await db.updateLastLogin(user.id);
     }
 
     // Логируем успешную попытку
@@ -223,16 +221,15 @@ export class SMSAuthService {
       attempt_type: "otp",
       success: true,
       ip_address: ipAddress,
-      timestamp: new Date(),
     });
 
     // Удаляем использованный OTP из обоих хранилищ
     this.otpStore.delete(phone);
-    await db.deleteOTPCode(otpRecord.id.toString());
+    await db.deleteOTPCode(otpRecord.id);
 
     return {
       success: true,
-      userId: user.id.toString(),
+      userId: user.id,
       requiresPinSetup: !user.pin_hash,
     };
   }
@@ -241,7 +238,7 @@ export class SMSAuthService {
    * Установка PIN кода
    */
   async setupPIN(
-    userId: string,
+    userId: number,
     pin: string,
   ): Promise<{ success: boolean; error?: string }> {
     // Валидация PIN
@@ -266,7 +263,7 @@ export class SMSAuthService {
     phone: string,
     pin: string,
     ipAddress: string,
-  ): Promise<{ success: boolean; userId?: string; error?: string }> {
+  ): Promise<{ success: boolean; userId?: number; error?: string }> {
     // Валидация телефона
     if (!this.validatePhone(phone)) {
       return { success: false, error: "Неверный формат телефона" };
@@ -291,7 +288,6 @@ export class SMSAuthService {
         attempt_type: "pin",
         success: false,
         ip_address: ipAddress,
-        timestamp: new Date(),
       });
 
       return {
@@ -310,7 +306,6 @@ export class SMSAuthService {
         attempt_type: "pin",
         success: false,
         ip_address: ipAddress,
-        timestamp: new Date(),
       });
 
       return { success: false, error: "Неверный PIN код" };
@@ -322,12 +317,11 @@ export class SMSAuthService {
       attempt_type: "pin",
       success: true,
       ip_address: ipAddress,
-      timestamp: new Date(),
     });
 
-    await db.updateLastLogin(user.id.toString());
+    await db.updateLastLogin(user.id);
 
-    return { success: true, userId: user.id.toString() };
+    return { success: true, userId: user.id };
   }
 
   /**

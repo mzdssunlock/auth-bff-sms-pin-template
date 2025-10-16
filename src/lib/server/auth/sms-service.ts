@@ -1,7 +1,7 @@
 // Серверный слой для SMS авторизации (для использования в Remote Functions)
 import type { RequestEvent } from "@sveltejs/kit";
 import { randomUUID } from "crypto";
-import { smsBFF, type SMSSessionData } from "./sms-bff";
+import { smsBFF } from "./sms-bff";
 
 /**
  * Запрос OTP кода
@@ -31,7 +31,7 @@ export async function serverVerifyOTP(
   const sessionId = randomUUID();
   const sessionData = {
     sessionId,
-    userId: result.userId!,
+    userId: String(result.userId!),
     phone,
     expiresAt:
       Date.now() + parseInt(process.env.SESSION_MAX_AGE || "86400") * 1000,
@@ -73,20 +73,14 @@ export async function serverSetupPIN(pin: string, event: RequestEvent) {
   }
 
   const smsAuth = smsBFF.getSMSAuthService();
-  const result = await smsAuth.setupPIN(session.userId, pin);
+  const result = await smsAuth.setupPIN(Number(session.userId), pin);
 
   if (!result.success) {
     return result;
   }
 
-  // Обновляем сессию
-  const updatedSession: SMSSessionData = {
-    ...(session as SMSSessionData),
-    requiresPinSetup: false,
-  };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await smsBFF.sessionStore.updateSession(sessionId, updatedSession as any);
-
+  // PIN успешно сохранён в БД
+  // Сессию обновлять не требуется - requiresPinSetup будет актуальным при следующем login
   return { success: true, message: "PIN код установлен" };
 }
 
@@ -110,7 +104,7 @@ export async function serverLoginWithPIN(
   const sessionId = randomUUID();
   const sessionData = {
     sessionId,
-    userId: result.userId!,
+    userId: String(result.userId!),
     phone,
     expiresAt:
       Date.now() + parseInt(process.env.SESSION_MAX_AGE || "86400") * 1000,

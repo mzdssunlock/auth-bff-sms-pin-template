@@ -1,7 +1,7 @@
 // src/routes/profile/+page.server.ts
 import { redirect } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
-import { db } from "$lib/server/db/surreal";
+import { db } from "$lib/server/db";
 
 export const load: PageServerLoad = async ({ locals }) => {
   // Защита страницы - требуется авторизация
@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   return {
     user: {
-      userId: user.id.toString(), // Конвертируем RecordId в строку
+      userId: user.id,
       phone: user.phone,
       hasPIN: !!user.pin_hash,
       createdAt: user.created_at.toISOString(),

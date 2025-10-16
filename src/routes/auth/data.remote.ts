@@ -56,6 +56,10 @@ export const verifyOTP = command(
   }),
   async (data) => {
     const event = getRequestEvent();
+    if (!event) {
+      throw new Error("Request event is not available");
+    }
+
     const result = await serverVerifyOTP(data.phone, data.code, event);
 
     if (!result.success) {
@@ -75,6 +79,10 @@ export const setupPIN = command(
   }),
   async (data) => {
     const event = getRequestEvent();
+    if (!event) {
+      throw new Error("Request event is not available");
+    }
+
     const result = await serverSetupPIN(data.pin, event);
 
     if (!result.success) {
@@ -97,6 +105,10 @@ export const loginWithPIN = command(
   }),
   async (data) => {
     const event = getRequestEvent();
+    if (!event) {
+      throw new Error("Request event is not available");
+    }
+
     const result = await serverLoginWithPIN(data.phone, data.pin, event);
 
     if (!result.success) {
@@ -112,5 +124,9 @@ export const loginWithPIN = command(
  */
 export const logout = command(async () => {
   const event = getRequestEvent();
+  if (!event) {
+    throw new Error("Request event is not available");
+  }
+
   return await serverLogout(event);
 });

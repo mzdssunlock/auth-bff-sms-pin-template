@@ -1,6 +1,6 @@
 # 🔐 Auth BFF SMS + PIN Template
 
-Production-ready **SvelteKit 5** authentication template with **SMS** and **PIN** authorization using **BFF pattern**, **SurrealDB**, and **enterprise-grade security**.
+Production-ready **SvelteKit 5** authentication template with **SMS** and **PIN** authorization using **BFF pattern**, **PostgreSQL + Drizzle ORM**, and **enterprise-grade security**.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![SvelteKit](https://img.shields.io/badge/SvelteKit-5.x-FF3E00?logo=svelte)](https://kit.svelte.dev/)
@@ -36,11 +36,12 @@ Production-ready **SvelteKit 5** authentication template with **SMS** and **PIN*
 
 ### 🗄️ Database & Session Management
 
-- ✅ **SurrealDB** for data persistence
+- ✅ **PostgreSQL 18** with **Drizzle ORM** for data persistence
 - ✅ **Redis** support for sessions (production-ready)
 - ✅ **Memory store** for development
 - ✅ Session auto-renewal
 - ✅ Full audit logging
+- ✅ Type-safe database queries
 
 ---
 
@@ -50,7 +51,7 @@ Production-ready **SvelteKit 5** authentication template with **SMS** and **PIN*
 
 - **Node.js** 20+
 - **npm** 10+
-- **Docker** (for SurrealDB)
+- **Docker** (for PostgreSQL)
 
 ### Installation
 
@@ -65,12 +66,11 @@ npm install
 # Copy environment variables
 cp .env.example .env
 
-# Generate SESSION_SECRET
-openssl rand -base64 32
-# Add to .env: SESSION_SECRET=<generated_key>
-
-# Start SurrealDB via Docker
+# Start PostgreSQL via Docker
 docker compose up -d
+
+# Apply database migrations
+npm run db:push
 
 # Start development server
 npm run dev
@@ -85,27 +85,22 @@ Open [http://localhost:5173/auth/sms-login](http://localhost:5173/auth/sms-login
 Create `.env` file:
 
 ```env
-# SurrealDB
-DB_USER=root
-DB_PASSWORD=root
-DB_HOST=http://localhost:8000
-DB_NAMESPACE=auth_app
-DB_DATABASE=main
+# PostgreSQL
+DB_HOST=localhost
+DB_PORT=5433
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=myapp
 
 # SMS Provider (mock for development)
-SMS_API_KEY=mock_key_for_development
-SMS_API_URL=https://api.sms.ru/sms/send
-SMS_SENDER_NAME=AuthApp
+SMS_PROVIDER=mock
 
 # Session
-SESSION_SECRET=<generated_32+_characters>
 SESSION_MAX_AGE=86400
 
 # Rate Limiting
 RATE_LIMIT_OTP_MAX=3
 RATE_LIMIT_OTP_WINDOW_MS=60000
-RATE_LIMIT_PIN_MAX=5
-RATE_LIMIT_PIN_WINDOW_MS=900000
 
 # Environment
 NODE_ENV=development
@@ -132,7 +127,7 @@ graph TB
         end
     end
 
-    Database[(🗄️ SurrealDB<br/>━━━━━━━━━━<br/>📊 Users<br/>📱 OTP Codes<br/>📝 Login Attempts)]
+    Database[(🗄️ PostgreSQL<br/>+ Drizzle ORM<br/>━━━━━━━━━━<br/>📊 Users<br/>📱 OTP Codes<br/>📝 Login Attempts)]
 
     Client -->|Type-Safe RPC| RemoteFunctions
     RemoteFunctions --> ServiceLayer
@@ -155,7 +150,7 @@ sequenceDiagram
     participant UI as 🎨 Svelte UI
     participant RF as 📡 Remote Functions
     participant Auth as 🔐 Auth Service
-    participant DB as 🗄️ SurrealDB
+    participant DB as 🗄️ PostgreSQL
     participant SMS as 📱 SMS Provider
 
     %% SMS Login Flow
@@ -240,7 +235,8 @@ src/
 │       │       ├── memory.ts        # Memory session store (dev)
 │       │       └── redis.ts         # Redis session store (prod)
 │       ├── db/
-│       │   └── surreal.ts           # SurrealDB client
+│       │   ├── index.ts              # PostgreSQL + Drizzle client
+│       │   └── schema.ts             # Database schema
 │       └── sms/
 │           ├── mock-provider.ts     # Mock SMS for dev
 │           └── real-provider.ts     # Real SMS provider
@@ -262,12 +258,12 @@ src/
 1. **SMS OTP Request**
    - User enters phone number
    - System generates 6-digit OTP (crypto.randomInt)
-   - OTP stored in SurrealDB with 5-minute expiration
+   - OTP stored in PostgreSQL with 5-minute expiration
    - SMS sent (mock in dev, real in prod)
 
 2. **OTP Verification**
    - User enters OTP code
-   - System validates against SurrealDB
+   - System validates against PostgreSQL
    - Max 3 attempts before lockout
    - IP address logged for audit
 
@@ -275,7 +271,7 @@ src/
    - User creates 4-6 digit PIN
    - Validated against weak patterns (1234, 1111, etc.)
    - Hashed with Argon2id (64MB memory, 3 iterations)
-   - Stored in SurrealDB
+   - Stored in PostgreSQL
 
 4. **PIN Login** (returning users)
    - User enters phone + PIN
@@ -394,7 +390,9 @@ npm run preview
 - **[SvelteKit 5](https://kit.svelte.dev/)** - Web framework
 - **[Svelte 5](https://svelte.dev/)** - UI framework (Runes Mode)
 - **[TypeScript](https://www.typescriptlang.org/)** - Type safety
-- **[SurrealDB](https://surrealdb.com/)** - Database
+- **[PostgreSQL 18](https://www.postgresql.org/)** - Database
+- **[Drizzle ORM](https://orm.drizzle.team/)** - Type-safe ORM
+- **[Postgres.js](https://github.com/porsager/postgres)** - PostgreSQL client
 - **[Argon2](https://github.com/ranisalt/node-argon2)** - Password hashing
 - **[HonoJS](https://hono.dev/)** - BFF framework
 - **[Valibot](https://valibot.dev/)** - Schema validation

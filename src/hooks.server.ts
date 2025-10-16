@@ -6,15 +6,19 @@ import {
   createRateLimiter,
   rateLimitPresets,
 } from "$lib/server/auth/rate-limiter.js";
-import { db } from "$lib/server/db/surreal.js";
+import { db } from "$lib/server/db/index.js";
 
 // ============================================================================
 // Database Initialization
 // ============================================================================
 
-// Инициализируем подключение к SurrealDB при старте
+// Инициализируем подключение к PostgreSQL при старте
 db.connect().catch((err: Error) => {
-  console.error("[Startup] Failed to connect to SurrealDB:", err);
+  console.error("[Startup] FATAL: Failed to connect to PostgreSQL:", err);
+  console.error(
+    "[Startup] Application cannot start without database connection",
+  );
+  process.exit(1); // Останавливаем приложение
 });
 
 // ============================================================================

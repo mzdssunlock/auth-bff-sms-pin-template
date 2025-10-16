@@ -83,7 +83,7 @@
       <li>✅ PIN коды для быстрого входа</li>
       <li>✅ HTTP-only cookies (безопасность)</li>
       <li>✅ Rate limiting (защита от брутфорса)</li>
-      <li>✅ SurrealDB для хранения данных</li>
+      <li>✅ PostgreSQL + Drizzle ORM для хранения данных</li>
       <li>✅ Argon2 для хеширования PIN</li>
     </ul>
   </div>
