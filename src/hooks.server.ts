@@ -7,6 +7,7 @@ import {
   rateLimitPresets,
 } from "$lib/server/auth/rate-limiter.js";
 import { db } from "$lib/server/db/index.js";
+import "$lib/server/shutdown.js"; // Регистрируем graceful shutdown handlers
 
 // ============================================================================
 // Database Initialization

@@ -15,8 +15,15 @@ import type {
 class PostgresDBClient {
   private static instance: PostgresDBClient;
   private queryClient: ReturnType<typeof postgres>;
-  private db: ReturnType<typeof drizzle<Record<string, never>>>;
+  private db: ReturnType<
+    typeof drizzle<{
+      users: typeof users;
+      otpCodes: typeof otpCodes;
+      loginAttempts: typeof loginAttempts;
+    }>
+  >;
   private connected = false;
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
   private constructor() {
     // Инициализируем клиент postgres.js
@@ -29,10 +36,18 @@ class PostgresDBClient {
       max: 10, // Максимум соединений в пуле
       idle_timeout: 20, // Закрывать неактивные соединения через 20 сек
       connect_timeout: 30, // Таймаут подключения 30 сек
+      // SSL для production (для самоподписанных сертификатов managed БД)
+      // Для production с валидным сертификатом используйте: ssl: true
+      ssl:
+        process.env.NODE_ENV === "production"
+          ? { rejectUnauthorized: false }
+          : false,
     });
 
-    // Инициализируем Drizzle ORM
-    this.db = drizzle(this.queryClient);
+    // Инициализируем Drizzle ORM с schema для relational queries
+    this.db = drizzle(this.queryClient, {
+      schema: { users, otpCodes, loginAttempts },
+    });
   }
 
   static getInstance(): PostgresDBClient {
@@ -50,9 +65,30 @@ class PostgresDBClient {
       await this.queryClient`SELECT 1`;
       this.connected = true;
       console.log("[PostgreSQL] Connected successfully");
+
+      // Запускаем автоматическую очистку истёкших OTP каждые 5 минут
+      this.startCleanupTimer();
     } catch (error) {
       console.error("[PostgreSQL] Connection failed:", error);
       throw error;
+    }
+  }
+
+  private startCleanupTimer(): void {
+    if (this.cleanupInterval) return;
+
+    this.cleanupInterval = setInterval(
+      () => {
+        this.cleanupExpiredOTP().catch((err) => {
+          console.error("[PostgreSQL] Cleanup error:", err);
+        });
+      },
+      5 * 60 * 1000,
+    ); // 5 минут
+
+    // Не блокируем выход из процесса
+    if (this.cleanupInterval.unref) {
+      this.cleanupInterval.unref();
     }
   }
 
@@ -90,15 +126,29 @@ class PostgresDBClient {
   ): Promise<User> {
     await this.ensureConnection();
 
-    const result = await this.db
-      .insert(users)
-      .values({
-        phone: data.phone,
-        pin_hash: data.pin_hash || null,
-      })
-      .returning();
+    try {
+      const result = await this.db
+        .insert(users)
+        .values({
+          phone: data.phone,
+          pin_hash: data.pin_hash || null,
+        })
+        .returning();
 
-    return result[0];
+      return result[0];
+    } catch (error) {
+      // Если пользователь уже существует (race condition), получаем его
+      if (
+        error instanceof Error &&
+        error.message.includes("unique constraint")
+      ) {
+        const existingUser = await this.getUserByPhone(data.phone);
+        if (existingUser) {
+          return existingUser;
+        }
+      }
+      throw error;
+    }
   }
 
   async updateUserPin(userId: number, pinHash: string): Promise<void> {
@@ -224,6 +274,12 @@ class PostgresDBClient {
 
   async end(): Promise<void> {
     if (this.connected) {
+      // Останавливаем cleanup timer
+      if (this.cleanupInterval) {
+        clearInterval(this.cleanupInterval);
+        this.cleanupInterval = null;
+      }
+
       await this.queryClient.end();
       this.connected = false;
       console.log("[PostgreSQL] Connection closed");
